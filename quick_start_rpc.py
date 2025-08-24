@@ -32,7 +32,7 @@ async def main():
             close_page_when_task_finished=True,
         )
         print(f"AI回复: {chat_result.get("data")[0].get('last_model_message', 'N/A')}")
-        # chat_result = await client.get_notes_brief_from_xhs(
+        # chat_result = await client.get_favorite_notes_brief_from_xhs(
         #     storage_file="data/note-brief-rpc.json",
         #     max_items=10,
         #     cookie_ids=["28ba44f1-bb67-41ab-86f0-a3d049d902aa"]
@@ -41,7 +41,7 @@ async def main():
         
         # # 📱 获取小红书笔记
         # print("\n📱 获取小红书美食笔记...")
-        # notes = await client_sdk.get_notes_brief_from_xhs(
+        # notes = await client_sdk.get_favorite_notes_brief_from_xhs(
         #     keywords=["美食", "推荐"],
         #     max_items=5
         # )

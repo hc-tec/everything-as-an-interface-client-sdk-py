@@ -6,7 +6,7 @@ RPC风格的客户端SDK
 使用示例:
     client_sdk = EAIRPCClient("http://localhost:8000", api_key="your-key")
     result = await client_sdk.chat_with_yuanbao("你好，请介绍一下自己")
-    notes = await client_sdk.get_notes_brief_from_xhs(["美食", "旅行"], max_items=50)
+    notes = await client_sdk.get_favorite_notes_brief_from_xhs(["美食", "旅行"], max_items=50)
 """
 
 import asyncio
@@ -21,7 +21,6 @@ from collections import OrderedDict
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Callable, Awaitable, Literal
 
-import httpx
 import requests
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -70,7 +69,7 @@ class EAIRPCClient:
         api_key: str,
         webhook_host: str = "0.0.0.0",
         webhook_port: int = 9001,
-        webhook_secret: Optional[str] = None
+        webhook_secret: Optional[str] = None,
     ):
         self._server_task = None
         self.base_url = base_url.rstrip('/')
@@ -283,7 +282,7 @@ class EAIRPCClient:
     async def _rpc_call(self,
                         plugin_id: str,
                         config: Dict[str, Any],
-                        timeout: float = 30.0):
+                        timeout_sec: float = 30.0):
         """执行RPC调用的上下文管理器"""
         # 生成唯一的事件ID
         event_id = str(uuid.uuid4())
@@ -301,7 +300,7 @@ class EAIRPCClient:
         
         # 创建Future等待结果
         future = asyncio.Future()
-        pending = _PendingCall(topic_id, future, timeout)
+        pending = _PendingCall(topic_id, future, timeout_sec)
         # 将pending挂载在topic_id下，方便通过topic_id回填结果
         self._pending_calls[topic_id] = pending
         
@@ -310,11 +309,11 @@ class EAIRPCClient:
             await self._run_plugin(plugin_id, config, topic_id, run_mode="once")
             
             # 等待结果
-            result = await asyncio.wait_for(future, timeout=timeout)
+            result = await asyncio.wait_for(future, timeout=timeout_sec)
             yield result
             
         except asyncio.TimeoutError:
-            raise TimeoutError(f"RPC call timeout after {timeout} seconds")
+            raise TimeoutError(f"RPC call timeout after {timeout_sec} seconds")
         finally:
             # 清理
             self._pending_calls.pop(topic_id, None)
@@ -444,48 +443,51 @@ class EAIRPCClient:
             "headless": kwargs.get("headless", False),
             **kwargs
         }
-        async with self._rpc_call("yuanbao_chat", config) as result:
+        async with self._rpc_call("yuanbao_chat", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
-    async def get_notes_brief_from_xhs(
+    async def get_favorite_notes_brief_from_xhs(
         self,
-        storage_file: str,
+        storage_data: str,
         max_items: int = 20,
+        max_new_items = 50,
         max_seconds: int = 300,
         **kwargs
     ) -> Dict[str, Any]:
         """从小红书获取笔记摘要"""
         config = {
-            "storage_file": storage_file,
+            "storage_data": storage_data,
             "max_items": max_items,
+            "max_new_items": max_new_items,
             "max_seconds": max_seconds,
             "headless": kwargs.get("headless", False),
             "cookie_ids": kwargs.get("cookie_ids", []),
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu_brief", config) as result:
+        async with self._rpc_call("xiaohongshu_favorites_brief", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     async def get_notes_details_from_xhs(
-        self, 
-        keywords: List[str], 
+        self,
+        brief_data,
         max_items: int = 20,
         max_seconds: int = 300,
+        wait_time_sec: int = 10,
         **kwargs
     ) -> Dict[str, Any]:
         """从小红书获取笔记详情"""
         config = {
-            "task_type": "details", 
-            "search_keywords": keywords,
+            "brief_data": brief_data,
             "max_items": max_items,
             "max_seconds": max_seconds,
+            "wait_time_sec": wait_time_sec,
             "headless": kwargs.get("headless", False),
             "cookie_ids": kwargs.get("cookie_ids", []),
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu_details", config) as result:
+        async with self._rpc_call("xiaohongshu_details", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     async def search_notes_from_xhs(
@@ -505,7 +507,7 @@ class EAIRPCClient:
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu_search", config) as result:
+        async with self._rpc_call("xiaohongshu_search", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     async def get_favorites_from_xhs(
@@ -524,7 +526,7 @@ class EAIRPCClient:
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu", config) as result:
+        async with self._rpc_call("xiaohongshu", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     # 通用插件调用方法
@@ -567,7 +569,7 @@ class EAIRPCClientSync:
             self._client.chat_with_yuanbao(message, **kwargs)
         )
     
-    def get_notes_brief_from_xhs(
+    def get_favorite_notes_brief_from_xhs(
         self, 
         keywords: List[str], 
         max_items: int = 20,
@@ -575,7 +577,7 @@ class EAIRPCClientSync:
     ) -> Dict[str, Any]:
         self._ensure_loop()
         return self._loop.run_until_complete(
-            self._client.get_notes_brief_from_xhs(keywords, max_items, **kwargs)
+            self._client.get_favorite_notes_brief_from_xhs(keywords, max_items, **kwargs)
         )
     
     def get_notes_details_from_xhs(

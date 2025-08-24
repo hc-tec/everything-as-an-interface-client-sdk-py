@@ -1,4 +1,4 @@
-
+requests
 httpx>=0.24.0
 fastapi>=0.100.0
 uvicorn>=0.22.0
