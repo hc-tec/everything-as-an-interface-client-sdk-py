@@ -274,7 +274,10 @@ class EAIRPCClient:
         
         if self._webhook_server:
             self._webhook_server.should_exit = True
-            await self._webhook_server.shutdown()
+            try:
+                await self._webhook_server.shutdown()
+            except Exception as e:
+                print("[NORMAL ERROR] clsoe webhook server: %s", e)
         
         await asyncio.to_thread(self.http_client.close)
     
