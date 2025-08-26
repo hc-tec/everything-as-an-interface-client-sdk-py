@@ -31,7 +31,7 @@ async def main():
             cookie_ids=["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
             close_page_when_task_finished=True,
         )
-        print(f"AI回复: {chat_result.get("data")[0].get('last_model_message', 'N/A')}")
+        print(f"AI回复: {chat_result.get('data')[0].get('last_model_message', 'N/A')}")
         # chat_result = await client.get_favorite_notes_brief_from_xhs(
         #     storage_file="data/note-brief-rpc.json",
         #     max_items=10,
