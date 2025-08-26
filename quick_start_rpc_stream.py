@@ -29,7 +29,7 @@ async def main():
         # 准备插件配置（以 yuanbao_chat 为例）
         # 注意: cookie_ids 需替换为你的账户 cookie id 列表
         plugin_id = "yuanbao_chat"
-        config: Dict[str, Any] = {
+        params: Dict[str, Any] = {
             "ask_question": "你好，我是小星星 (stream)",
             "cookie_ids": ["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
             "headless": False,
@@ -40,7 +40,7 @@ async def main():
         # - 任务执行过程中产生的多次发布事件都会被推送到该 topic
         # - 通过异步上下文管理器自动完成资源清理
         print("\n▶️ 启动插件并进入持续监听模式...")
-        async with client.run_plugin_stream(plugin_id, config, interval=30) as stream:
+        async with client.run_plugin_stream(plugin_id, params, interval=30) as stream:
             # 使用 stream.next(timeout=60) 设置60秒超时的拉取循环
             while True:
                 try:
@@ -66,7 +66,7 @@ async def main():
 
                 # 任务可能多次产生结果，这里简单打印并在首个有效结果后退出示例
                 if isinstance(result, dict):
-                    print(f"AI回复: {result.get("data")[0].get('last_model_message', 'N/A')}")
+                    print(f"AI回复: {result.get('data')[0].get('last_model_message', 'N/A')}")
                 else:
                     # 如果没有标准 result 字段，打印原始 payload 以便调试
                     print("ℹ️ 事件payload:", payload)

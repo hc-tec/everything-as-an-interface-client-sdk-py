@@ -284,7 +284,7 @@ class EAIRPCClient:
     @asynccontextmanager
     async def _rpc_call(self,
                         plugin_id: str,
-                        config: Dict[str, Any],
+                        params: Dict[str, Any],
                         timeout_sec: float = 30.0):
         """执行RPC调用的上下文管理器"""
         # 生成唯一的事件ID
@@ -309,7 +309,7 @@ class EAIRPCClient:
         
         try:
             # 执行插件
-            await self._run_plugin(plugin_id, config, topic_id, run_mode="once")
+            await self._run_plugin(plugin_id, params, topic_id, run_mode="once")
             
             # 等待结果
             result = await asyncio.wait_for(future, timeout=timeout_sec)
@@ -365,7 +365,7 @@ class EAIRPCClient:
     
     async def _run_plugin(self,
                           plugin_id: str,
-                          config: Dict[str, Any],
+                          params: Dict[str, Any],
                           topic_id: str,
                           run_mode: Literal["once","recurring"]="once",
                           interval: float=300):
@@ -377,7 +377,7 @@ class EAIRPCClient:
             json={
                 "plugin_id": plugin_id,
                 "run_mode": run_mode,
-                "config": config,
+                "params": params,
                 "topic_id": topic_id,
                 "interval": interval,
             },
@@ -388,7 +388,7 @@ class EAIRPCClient:
     @asynccontextmanager
     async def run_plugin_stream(self,
                                 plugin_id: str,
-                                config: Dict[str, Any],
+                                params: Dict[str, Any],
                                 run_mode: Literal["once","recurring"]="recurring",
                                 interval: float=300,
                                 buffer_size: int = 100):
@@ -413,7 +413,7 @@ class EAIRPCClient:
         stream = self._Stream(q, topic_id, self._topic_listeners)
         try:
             # 启动插件（一次性任务也可能产生多次发布事件）
-            await self._run_plugin(plugin_id, config, topic_id, run_mode, interval)
+            await self._run_plugin(plugin_id, params, topic_id, run_mode, interval)
             yield stream
         finally:
             await stream.close()
@@ -441,12 +441,12 @@ class EAIRPCClient:
     # 具体的RPC方法
     async def chat_with_yuanbao(self, ask_question: str, **kwargs) -> Dict[str, Any]:
         """与AI元宝聊天"""
-        config = {
+        params = {
             "ask_question": ask_question,
             "headless": kwargs.get("headless", False),
             **kwargs
         }
-        async with self._rpc_call("yuanbao_chat", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("yuanbao_chat", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     async def get_favorite_notes_brief_from_xhs(
@@ -458,7 +458,7 @@ class EAIRPCClient:
         **kwargs
     ) -> Dict[str, Any]:
         """从小红书获取笔记摘要"""
-        config = {
+        params = {
             "storage_data": storage_data,
             "max_items": max_items,
             "max_new_items": max_new_items,
@@ -468,7 +468,7 @@ class EAIRPCClient:
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu_favorites_brief", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("xiaohongshu_favorites_brief", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     async def get_notes_details_from_xhs(
@@ -480,7 +480,7 @@ class EAIRPCClient:
         **kwargs
     ) -> Dict[str, Any]:
         """从小红书获取笔记详情"""
-        config = {
+        params = {
             "brief_data": brief_data,
             "max_items": max_items,
             "max_seconds": max_seconds,
@@ -490,7 +490,7 @@ class EAIRPCClient:
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu_details", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("xiaohongshu_details", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     async def search_notes_from_xhs(
@@ -501,7 +501,7 @@ class EAIRPCClient:
         **kwargs
     ) -> Dict[str, Any]:
         """从小红书搜索笔记"""
-        config = {
+        params = {
             "search_keywords": keywords,
             "max_items": max_items,
             "max_seconds": max_seconds,
@@ -510,7 +510,7 @@ class EAIRPCClient:
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu_search", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("xiaohongshu_search", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     async def get_favorites_from_xhs(
@@ -520,7 +520,7 @@ class EAIRPCClient:
         **kwargs
     ) -> Dict[str, Any]:
         """从小红书获取收藏"""
-        config = {
+        params = {
             "task_type": "favorites",
             "max_items": max_items,
             "max_seconds": max_seconds,
@@ -529,18 +529,18 @@ class EAIRPCClient:
             **kwargs
         }
         
-        async with self._rpc_call("xiaohongshu", config, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("xiaohongshu", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
             return result
     
     # 通用插件调用方法
     async def call_plugin(
         self, 
         plugin_id: str, 
-        config: Dict[str, Any], 
+        params: Dict[str, Any],
         timeout: float = 300.0
     ) -> Dict[str, Any]:
         """通用插件调用方法"""
-        async with self._rpc_call(plugin_id, config, timeout) as result:
+        async with self._rpc_call(plugin_id, params, timeout) as result:
             return result
 
 
@@ -618,10 +618,10 @@ class EAIRPCClientSync:
     def call_plugin(
         self, 
         plugin_id: str, 
-        config: Dict[str, Any], 
+        params: Dict[str, Any],
         timeout: float = 300.0
     ) -> Dict[str, Any]:
         self._ensure_loop()
         return self._loop.run_until_complete(
-            self._client.call_plugin(plugin_id, config, timeout)
+            self._client.call_plugin(plugin_id, params, timeout)
         )

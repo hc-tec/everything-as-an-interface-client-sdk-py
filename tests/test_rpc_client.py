@@ -148,8 +148,8 @@ class TestEAIRPCClient:
             mock_response.raise_for_status = MagicMock()
             mock_post.return_value = mock_response
             
-            config = {"param1": "value1"}
-            await client._run_plugin("test-plugin", config, "test-topic")
+            params = {"param1": "value1"}
+            await client._run_plugin("test-plugin", params, "test-topic")
             
             mock_post.assert_called_once_with(
                 "post",
@@ -157,7 +157,7 @@ class TestEAIRPCClient:
                 json={
                     "plugin_id": "test-plugin",
                     "run_mode": "once",
-                    "config": config,
+                    "params": params,
                     "topic_id": "test-topic"
                 },
                 timeout=30,
@@ -171,20 +171,20 @@ class TestEAIRPCClient:
              patch.object(client, '_run_plugin') as mock_run_plugin:
             
             # 模拟成功的调用
-            config = {"test": "config"}
+            params = {"test": "params"}
             
             # 创建一个已完成的Future来模拟成功响应
             future = asyncio.Future()
             future.set_result({"success": True, "data": "test result"})
             
             with patch('asyncio.Future', return_value=future):
-                async with client._rpc_call("test-plugin", config) as result:
+                async with client._rpc_call("test-plugin", params) as result:
                     assert result == {"success": True, "data": "test result"}
             
             # 验证调用
             mock_create_topic.assert_called_once()
             mock_create_sub.assert_called_once()
-            mock_run_plugin.assert_called_once_with("test-plugin", config, mock_create_topic.call_args[0][0])
+            mock_run_plugin.assert_called_once_with("test-plugin", params, mock_create_topic.call_args[0][0])
 
 
 class TestEAIRPCClientSync:
