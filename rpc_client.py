@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Callable, Awaitable, Literal
 import requests
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request
-from .params import TaskParams, ServiceParams, SyncParams
+from client_sdk.params import TaskParams, ServiceParams, SyncParams
 
 logger = logging.getLogger("eai_rpc_client")
 

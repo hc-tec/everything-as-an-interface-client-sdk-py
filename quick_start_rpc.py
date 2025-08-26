@@ -8,7 +8,7 @@
 import asyncio
 
 from client_sdk.rpc_client import EAIRPCClient
-from src.core.task_params import TaskParams
+from client_sdk.params import TaskParams
 
 
 async def main():
