@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Callable, Awaitable, Literal
 import requests
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request
-from params import TaskParams, ServiceParams
+from params import TaskParams, ServiceParams, SyncParams
 
 logger = logging.getLogger("eai_rpc_client")
 
@@ -494,13 +494,15 @@ class EAIRPCClient:
         storage_data: str,
         rpc_timeout_sec=30,
         task_params: TaskParams = TaskParams(),
-        service_params: ServiceParams = ServiceParams()
+        service_params: ServiceParams = ServiceParams(),
+        sync_params: SyncParams = SyncParams(),
     ) -> Dict[str, Any]:
         """从小红书获取笔记摘要"""
         params = {
             "storage_data": storage_data,
             **task_params.__dict__,
             **service_params.__dict__,
+            **sync_params.__dict__,
         }
         
         async with self._rpc_call("xiaohongshu_favorites_brief", params, timeout_sec=rpc_timeout_sec) as result:

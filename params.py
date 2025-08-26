@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, Iterator, List, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Dict, Iterable, Iterator, List, Mapping, MutableMapping, Optional, Tuple, Sequence
 
 
 # Copy from src/core/task_params.py
@@ -53,3 +53,43 @@ class ServiceParams:
     max_pages: Optional[int] = None
     pager_selector: Optional[str] = None
     need_raw_data: bool = False
+
+
+@dataclass
+class SyncParams:
+    """用于被动数据同步和停止条件的配置。
+
+    属性：
+        identity_key: 用于唯一标识记录的字段名。
+        deletion_policy: 'soft' 表示标记删除，'hard' 表示物理删除文档。
+        soft_delete_flag: 用于标记软删除文档的字段名。
+        soft_delete_time_key: 用于存储软删除时间戳的字段名。
+        stop_after_consecutive_known: 当一个批次包含如此多连续的已知项时停止同步。假设设置 stop_after_consecutive_known = 5，
+            那么当连续 5 条数据都是已经同步过的记录（没有发生任何变化）时，系统会停止进一步的同步，因为认为数据已经同步完成，不再需要继续抓取。
+        stop_after_no_change_batches: 在没有新增或更新的批次后停止同步的批次数量。也就是说，数据抓取了一段时间后，
+            如果连续几个批次都没有发现任何变化，可能说明数据已经同步完毕，或者数据源没有更多更新，于是自动停止抓取。
+        max_new_items: 当本次会话中收集到的新项达到此限制时停止同步。
+
+    Configuration for passive data synchronization and stop conditions.
+
+    Attributes:
+        identity_key: Field name used to uniquely identify a record.
+        deletion_policy: 'soft' to mark deletions, 'hard' to remove documents.
+        soft_delete_flag: Field name used to mark soft-deleted documents.
+        soft_delete_time_key: Field name used to store deletion timestamp on soft delete.
+        stop_after_consecutive_known: Stop when a batch contains this many consecutive already-known items.
+        stop_after_no_change_batches: Stop after this many batches without additions or updates.
+        max_new_items: Stop when new items collected in this session reach this limit.
+    """
+
+    identity_key: str = "id"
+    deletion_policy: str = "soft"
+    soft_delete_flag: str = "deleted"
+    soft_delete_time_key: str = "deleted_at"
+    stop_after_consecutive_known: Optional[int] = None
+    stop_after_no_change_batches: Optional[int] = None
+    max_new_items: Optional[int] = None
+    # Fingerprint-based update detection (for sources without reliable updated_at)
+    fingerprint_fields: Optional[Sequence[str]] = None  # None -> use all fields except bookkeeping keys
+    fingerprint_key: str = "_fingerprint"
+    fingerprint_algorithm: str = "sha1"  # sha1|sha256
