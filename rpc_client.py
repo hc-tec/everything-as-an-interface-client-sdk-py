@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional, Callable, Awaitable, Literal
 import requests
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request
+from params import TaskParams, ServiceParams
 
 logger = logging.getLogger("eai_rpc_client")
 
@@ -365,7 +366,7 @@ class EAIRPCClient:
     
     async def _run_plugin(self,
                           plugin_id: str,
-                          params: Dict[str, Any],
+                          task_params: Dict[str, Any],
                           topic_id: str,
                           run_mode: Literal["once","recurring"]="once",
                           interval: float=300):
@@ -377,7 +378,7 @@ class EAIRPCClient:
             json={
                 "plugin_id": plugin_id,
                 "run_mode": run_mode,
-                "params": params,
+                "params": task_params,
                 "topic_id": topic_id,
                 "interval": interval,
             },
@@ -386,12 +387,16 @@ class EAIRPCClient:
     
     # 新增：运行并持续监听结果（支持多次事件）
     @asynccontextmanager
-    async def run_plugin_stream(self,
-                                plugin_id: str,
-                                params: Dict[str, Any],
-                                run_mode: Literal["once","recurring"]="recurring",
-                                interval: float=300,
-                                buffer_size: int = 100):
+    async def run_plugin_stream(
+        self,
+        plugin_id: str,
+        run_mode: Literal["once","recurring"]="recurring",
+        interval: float=300,
+        buffer_size: int=100,
+        task_params: TaskParams = TaskParams(),
+        service_params: ServiceParams = ServiceParams(),
+        **kwargs,
+    ):
         """启动插件并持续监听其在所属topic中的多次结果。
         用法:
             async with client.run_plugin_stream("foo", {...}) as stream:
@@ -399,6 +404,11 @@ class EAIRPCClient:
                     ... # 处理每个事件
         返回的 event 结构: {"event_id", "topic_id", "plugin_id", "payload"}
         """
+        params = {
+            **task_params.__dict__,
+            **service_params.__dict__,
+            **kwargs,
+        }
         await self._test_health()
         # 准备topic与订阅
         topic_id = f"stream-{uuid.uuid4()}"
@@ -412,7 +422,7 @@ class EAIRPCClient:
 
         stream = self._Stream(q, topic_id, self._topic_listeners)
         try:
-            # 启动插件（一次性任务也可能产生多次发布事件）
+            # 启动插件
             await self._run_plugin(plugin_id, params, topic_id, run_mode, interval)
             yield stream
         finally:
@@ -439,108 +449,115 @@ class EAIRPCClient:
             await stream.close()
     
     # 具体的RPC方法
-    async def chat_with_yuanbao(self, ask_question: str, **kwargs) -> Dict[str, Any]:
+    async def chat_with_yuanbao(
+        self,
+        ask_question: str,
+        conversation_id: str=None,
+        rpc_timeout_sec=30,
+        task_params: TaskParams=TaskParams(),
+        service_params: ServiceParams=ServiceParams()) -> Dict[str, Any]:
         """与AI元宝聊天"""
         params = {
             "ask_question": ask_question,
-            "headless": kwargs.get("headless", False),
-            **kwargs
+            "conversation_id": conversation_id,
+            **task_params.__dict__,
+            **service_params.__dict__,
         }
-        async with self._rpc_call("yuanbao_chat", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("yuanbao_chat", params, timeout_sec=rpc_timeout_sec) as result:
             return result
-    
+
+    @asynccontextmanager
+    async def chat_with_yuanbao_stream(
+        self,
+        ask_question: str,
+        conversation_id: str = None,
+        run_mode: Literal["once", "recurring"] = "recurring",
+        interval: float = 300,
+        buffer_size: int = 100,
+        task_params: TaskParams = TaskParams(),
+        service_params: ServiceParams = ServiceParams(),
+    ):
+        async with self.run_plugin_stream(
+            plugin_id="yuanbao_chat",
+            ask_question=ask_question,
+            conversation_id=conversation_id,
+            run_mode=run_mode,
+            interval=interval,
+            buffer_size=buffer_size,
+            task_params=task_params,
+            service_params=service_params,
+        ) as stream:
+            yield stream
+
     async def get_favorite_notes_brief_from_xhs(
         self,
         storage_data: str,
-        max_items: int = 20,
-        max_new_items = 50,
-        max_seconds: int = 300,
-        **kwargs
+        rpc_timeout_sec=30,
+        task_params: TaskParams = TaskParams(),
+        service_params: ServiceParams = ServiceParams()
     ) -> Dict[str, Any]:
         """从小红书获取笔记摘要"""
         params = {
             "storage_data": storage_data,
-            "max_items": max_items,
-            "max_new_items": max_new_items,
-            "max_seconds": max_seconds,
-            "headless": kwargs.get("headless", False),
-            "cookie_ids": kwargs.get("cookie_ids", []),
-            **kwargs
+            **task_params.__dict__,
+            **service_params.__dict__,
         }
         
-        async with self._rpc_call("xiaohongshu_favorites_brief", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("xiaohongshu_favorites_brief", params, timeout_sec=rpc_timeout_sec) as result:
             return result
     
     async def get_notes_details_from_xhs(
         self,
         brief_data,
-        max_items: int = 20,
-        max_seconds: int = 300,
         wait_time_sec: int = 10,
-        **kwargs
+        rpc_timeout_sec=30,
+        task_params: TaskParams = TaskParams(),
+        service_params: ServiceParams = ServiceParams()
     ) -> Dict[str, Any]:
         """从小红书获取笔记详情"""
         params = {
             "brief_data": brief_data,
-            "max_items": max_items,
-            "max_seconds": max_seconds,
             "wait_time_sec": wait_time_sec,
-            "headless": kwargs.get("headless", False),
-            "cookie_ids": kwargs.get("cookie_ids", []),
-            **kwargs
+            **task_params.__dict__,
+            **service_params.__dict__,
         }
         
-        async with self._rpc_call("xiaohongshu_details", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("xiaohongshu_details", params, timeout_sec=rpc_timeout_sec) as result:
             return result
     
     async def search_notes_from_xhs(
         self, 
-        keywords: List[str], 
-        max_items: int = 20,
-        max_seconds: int = 300,
-        **kwargs
+        keywords: List[str],
+        rpc_timeout_sec=30,
+        task_params: TaskParams = TaskParams(),
+        service_params: ServiceParams = ServiceParams()
     ) -> Dict[str, Any]:
         """从小红书搜索笔记"""
         params = {
             "search_keywords": keywords,
-            "max_items": max_items,
-            "max_seconds": max_seconds,
-            "headless": kwargs.get("headless", False),
-            "cookie_ids": kwargs.get("cookie_ids", []),
-            **kwargs
+            **task_params.__dict__,
+            **service_params.__dict__,
         }
         
-        async with self._rpc_call("xiaohongshu_search", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
-            return result
-    
-    async def get_favorites_from_xhs(
-        self, 
-        max_items: int = 20,
-        max_seconds: int = 300,
-        **kwargs
-    ) -> Dict[str, Any]:
-        """从小红书获取收藏"""
-        params = {
-            "task_type": "favorites",
-            "max_items": max_items,
-            "max_seconds": max_seconds,
-            "headless": kwargs.get("headless", False),
-            "cookie_ids": kwargs.get("cookie_ids", []),
-            **kwargs
-        }
-        
-        async with self._rpc_call("xiaohongshu", params, timeout_sec=kwargs.get("rpc_timeout_sec")) as result:
+        async with self._rpc_call("xiaohongshu_search", params, timeout_sec=rpc_timeout_sec) as result:
             return result
     
     # 通用插件调用方法
     async def call_plugin(
         self, 
-        plugin_id: str, 
-        params: Dict[str, Any],
-        timeout: float = 300.0
+        plugin_id: str,
+        rpc_timeout_sec=30,
+        task_params: TaskParams = TaskParams(),
+        service_params: ServiceParams = ServiceParams(),
+        **kwargs
     ) -> Dict[str, Any]:
         """通用插件调用方法"""
-        async with self._rpc_call(plugin_id, params, timeout) as result:
+        params = {
+            **task_params.__dict__,
+            **service_params.__dict__,
+            **kwargs,
+        }
+        async with self._rpc_call(plugin_id, params, timeout_sec=rpc_timeout_sec) as result:
             return result
 
 

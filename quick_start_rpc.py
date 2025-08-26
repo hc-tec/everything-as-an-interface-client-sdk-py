@@ -8,6 +8,7 @@
 import asyncio
 
 from client_sdk.rpc_client import EAIRPCClient
+from src.core.task_params import TaskParams
 
 
 async def main():
@@ -28,10 +29,16 @@ async def main():
         print("\n🤖 与AI元宝聊天...")
         chat_result = await client.chat_with_yuanbao(
             ask_question="你好，我是小星星",
-            cookie_ids=["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
-            close_page_when_task_finished=True,
+            conversation_id=None,
+            task_params=TaskParams(
+                cookie_ids=["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
+                close_page_when_task_finished=True,
+            ),
         )
-        print(f"AI回复: {chat_result.get('data')[0].get('last_model_message', 'N/A')}")
+        if chat_result["success"]:
+            print(f"AI回复: {chat_result.get('data')[0].get('last_model_message', 'N/A')}")
+        else:
+            print(chat_result["error"])
         # chat_result = await client.get_favorite_notes_brief_from_xhs(
         #     storage_file="data/note-brief-rpc.json",
         #     max_items=10,

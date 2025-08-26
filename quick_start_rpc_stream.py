@@ -9,6 +9,7 @@
 import asyncio
 from typing import Any, Dict
 
+from client_sdk.params import TaskParams
 from client_sdk.rpc_client import EAIRPCClient
 
 
@@ -28,19 +29,17 @@ async def main():
 
         # 准备插件配置（以 yuanbao_chat 为例）
         # 注意: cookie_ids 需替换为你的账户 cookie id 列表
-        plugin_id = "yuanbao_chat"
-        params: Dict[str, Any] = {
-            "ask_question": "你好，我是小星星 (stream)",
-            "cookie_ids": ["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
-            "headless": False,
-        }
+        ask_question = "你好，我是小星星 (stream)"
+        task_params = TaskParams(
+            cookie_ids=["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
+        )
 
         # 启动插件并持续监听：
         # - run_plugin_stream 会创建一个临时 topic 并订阅到当前客户端的 webhook
         # - 任务执行过程中产生的多次发布事件都会被推送到该 topic
         # - 通过异步上下文管理器自动完成资源清理
         print("\n▶️ 启动插件并进入持续监听模式...")
-        async with client.run_plugin_stream(plugin_id, params, interval=30) as stream:
+        async with client.chat_with_yuanbao_stream(ask_question, task_params=task_params, interval=30) as stream:
             # 使用 stream.next(timeout=60) 设置60秒超时的拉取循环
             while True:
                 try:
