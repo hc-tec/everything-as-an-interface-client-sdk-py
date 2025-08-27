@@ -17,13 +17,20 @@ async def main():
         base_url="http://127.0.0.1:8008", # 服务程序ip+port
         api_key="testkey",  # 与服务程序约定好的API密钥
         webhook_host="127.0.0.1", # webhook订阅服务，当服务程序成功获取到client所需要的订阅数据时，就会通过webhook调用向此请求发送订阅数据
-        webhook_port=9002,
+        webhook_port=0, # 随机端口
     )
     
     try:
         # 启动客户端
         await client.start()
         print("✅ RPC客户端已启动")
+
+        chat_result = await client.get_collection_list_from_zhihu(
+            task_params=TaskParams(
+                cookie_ids=["828f1d61-e7a8-4610-b208-2cfadee30574"],
+                close_page_when_task_finished=True,
+            ),
+        )
         
         # 🤖 与AI聊天
         print("\n🤖 与AI元宝聊天...")

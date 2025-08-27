@@ -543,6 +543,21 @@ class EAIRPCClient:
         
         async with self._rpc_call("xiaohongshu_search", params, timeout_sec=rpc_timeout_sec) as result:
             return result
+
+    async def get_collection_list_from_zhihu(
+        self,
+        user_id: Optional[str]=None,
+        rpc_timeout_sec=30,
+        task_params: TaskParams=TaskParams(),
+        service_params: ServiceParams=ServiceParams()) -> Dict[str, Any]:
+        """与AI元宝聊天"""
+        params = {
+            "user_id": user_id,
+            **task_params.__dict__,
+            **service_params.__dict__,
+        }
+        async with self._rpc_call("zhihu_collection_list", params, timeout_sec=rpc_timeout_sec) as result:
+            return result
     
     # 通用插件调用方法
     async def call_plugin(

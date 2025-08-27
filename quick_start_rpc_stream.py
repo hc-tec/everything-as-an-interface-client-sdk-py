@@ -19,7 +19,7 @@ async def main():
         base_url="http://127.0.0.1:8008",  # 服务程序 ip+port
         api_key="testkey",                 # 与服务程序约定好的 API 密钥
         webhook_host="127.0.0.1",         # Webhook 订阅服务的监听地址
-        webhook_port=9002,                  # Webhook 订阅服务的监听端口
+        webhook_port=0,                  # Webhook 订阅服务的监听端口
     )
 
     try:
