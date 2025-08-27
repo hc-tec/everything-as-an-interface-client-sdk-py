@@ -558,7 +558,38 @@ class EAIRPCClient:
         }
         async with self._rpc_call("zhihu_collection_list", params, timeout_sec=rpc_timeout_sec) as result:
             return result
-    
+
+    async def call_paddle_ocr(
+        self,
+        image_path_abs_path: str,
+        lang: str = "ch",
+        include_text: bool = True,
+        need_merge_lines: bool = True,
+        include_boxes: bool = False,
+        include_confidence: bool = True,
+        include_layout: bool = False,
+        include_table: bool = False,
+        include_raw_image: bool = True,
+        rpc_timeout_sec=30,
+        task_params: TaskParams = TaskParams(),
+    ) -> Dict[str, Any]:
+        """调用Paddle OCR"""
+        params = {
+            "lang": lang,
+            "image_path_abs_path": image_path_abs_path,
+            "include_text": include_text,
+            "need_merge_lines": need_merge_lines,
+            "include_boxes": include_boxes,
+            "include_confidence": include_confidence,
+            "include_layout": include_layout,
+            "include_table": include_table,
+            "include_raw_image": include_raw_image,
+            **task_params.__dict__,
+        }
+
+        async with self._rpc_call("paddle_ocr", params, timeout_sec=rpc_timeout_sec) as result:
+            return result
+
     # 通用插件调用方法
     async def call_plugin(
         self, 
