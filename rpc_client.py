@@ -328,7 +328,7 @@ class EAIRPCClient:
         try:
             ret = response.json()
             if ret.get("status") == "ok":
-                print("✅ 与服务连接正常")
+                pass
             else:
                 raise RuntimeError()
         except Exception:
@@ -557,6 +557,53 @@ class EAIRPCClient:
             **service_params.__dict__,
         }
         async with self._rpc_call("zhihu_collection_list", params, timeout_sec=rpc_timeout_sec) as result:
+            return result
+
+    async def get_collection_list_from_bilibili(
+        self,
+        user_id: Optional[str]=None,
+        rpc_timeout_sec=30,
+        task_params: TaskParams=TaskParams(),
+        service_params: ServiceParams=ServiceParams()) -> Dict[str, Any]:
+        """与AI元宝聊天"""
+        params = {
+            "user_id": user_id,
+            **task_params.__dict__,
+            **service_params.__dict__,
+        }
+        async with self._rpc_call("bilibili_collection_list", params, timeout_sec=rpc_timeout_sec) as result:
+            return result
+
+    async def get_collection_list_videos_from_bilibili(
+        self,
+        collection_id: str,
+        user_id: Optional[str]=None,
+        rpc_timeout_sec=30,
+        task_params: TaskParams=TaskParams(),
+        service_params: ServiceParams=ServiceParams()) -> Dict[str, Any]:
+        """与AI元宝聊天"""
+        params = {
+            "user_id": user_id,
+            "collection_id": collection_id,
+            **task_params.__dict__,
+            **service_params.__dict__,
+        }
+        async with self._rpc_call("bilibili_collection_videos", params, timeout_sec=rpc_timeout_sec) as result:
+            return result
+
+    async def get_video_details_from_bilibili(
+        self,
+        bvid: str,
+        rpc_timeout_sec=30,
+        task_params: TaskParams=TaskParams(),
+        service_params: ServiceParams=ServiceParams()) -> Dict[str, Any]:
+        """与AI元宝聊天"""
+        params = {
+            "bvid": bvid,
+            **task_params.__dict__,
+            **service_params.__dict__,
+        }
+        async with self._rpc_call("bilibili_video_details", params, timeout_sec=rpc_timeout_sec) as result:
             return result
 
     async def call_paddle_ocr(

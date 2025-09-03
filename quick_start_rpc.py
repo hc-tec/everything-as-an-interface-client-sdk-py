@@ -25,21 +25,21 @@ async def main():
         await client.start()
         print("✅ RPC客户端已启动")
 
-        chat_result = await client.call_paddle_ocr(
-            image_path_abs_path=r"D:\AIProject\everything-as-an-interface-apps\xiaohongshu_favorites_collect_and_process_with_ai_web\data\images\68a6a594000000001b03514e\1040g3k031ledqb3c5o0g5ohf2g8ocft9qm56a38!nd_dft_wlteh_webp_3.webp",
-            task_params=TaskParams(
-                cookie_ids=[],
-                close_page_when_task_finished=True,
-            ),
-        )
+        # chat_result = await client.call_paddle_ocr(
+        #     image_path_abs_path=r"D:\AIProject\everything-as-an-interface-apps\favorites_collect_and_process_with_ai_web\data\images\68a6a594000000001b03514e\1040g3k031ledqb3c5o0g5ohf2g8ocft9qm56a38!nd_dft_wlteh_webp_3.webp",
+        #     task_params=TaskParams(
+        #         cookie_ids=[],
+        #         close_page_when_task_finished=True,
+        #     ),
+        # )
 
-        chat_result = await client.get_notes_details_from_xhs(
-            brief_data="",
-            task_params=TaskParams(
-                cookie_ids=["28ba44f1-bb67-41ab-86f0-a3d049d902aa"],
-                close_page_when_task_finished=True,
-            ),
-        )
+        # chat_result = await client.get_notes_details_from_xhs(
+        #     brief_data="",
+        #     task_params=TaskParams(
+        #         cookie_ids=["28ba44f1-bb67-41ab-86f0-a3d049d902aa"],
+        #         close_page_when_task_finished=True,
+        #     ),
+        # )
         
         # 🤖 与AI聊天
         print("\n🤖 与AI元宝聊天...")
@@ -48,7 +48,7 @@ async def main():
             conversation_id=None,
             task_params=TaskParams(
                 cookie_ids=["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
-                close_page_when_task_finished=True,
+                close_page_when_task_finished=False,
             ),
         )
         if chat_result["success"]:
