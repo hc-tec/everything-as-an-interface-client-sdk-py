@@ -33,28 +33,28 @@ async def main():
         #     ),
         # )
 
-        # chat_result = await client.get_notes_details_from_xhs(
-        #     brief_data="",
+        chat_result = await client.get_collection_list_from_bilibili(
+            task_params=TaskParams(
+                cookie_ids=["23d87982-a801-4d12-ae93-50a85e336e98"],
+                close_page_when_task_finished=True,
+            ),
+        )
+        print(chat_result)
+        
+        # 🤖 与AI聊天
+        # print("\n🤖 与AI元宝聊天...")
+        # chat_result = await client.chat_with_yuanbao(
+        #     ask_question="你好，我是小星星",
+        #     conversation_id=None,
         #     task_params=TaskParams(
-        #         cookie_ids=["28ba44f1-bb67-41ab-86f0-a3d049d902aa"],
+        #         cookie_ids=["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
         #         close_page_when_task_finished=True,
         #     ),
         # )
-        
-        # 🤖 与AI聊天
-        print("\n🤖 与AI元宝聊天...")
-        chat_result = await client.chat_with_yuanbao(
-            ask_question="你好，我是小星星",
-            conversation_id=None,
-            task_params=TaskParams(
-                cookie_ids=["819969a2-9e59-46f5-b0ca-df2116d9c2a0"],
-                close_page_when_task_finished=False,
-            ),
-        )
-        if chat_result["success"]:
-            print(f"AI回复: {chat_result.get('data')[0].get('last_model_message', 'N/A')}")
-        else:
-            print(chat_result["error"])
+        # if chat_result["success"]:
+        #     print(f"AI回复: {chat_result.get('data')[0].get('last_model_message', 'N/A')}")
+        # else:
+        #     print(chat_result["error"])
         # chat_result = await client.get_favorite_notes_brief_from_xhs(
         #     storage_file="data/note-brief-rpc.json",
         #     max_items=10,
