@@ -508,22 +508,36 @@ class EAIRPCClient:
         async with self._rpc_call("xiaohongshu_favorites_brief", params, timeout_sec=rpc_timeout_sec) as result:
             return result
     
-    async def get_notes_details_from_xhs(
+    async def get_note_detail_from_xhs(
         self,
-        brief_data,
-        wait_time_sec: int = 10,
-        rpc_timeout_sec=30,
+        note_id: str,
+        xsec_token: str,
+        wait_time_sec: int = 3,
+        rpc_timeout_sec: int = 30,
         task_params: TaskParams = TaskParams(),
         service_params: ServiceParams = ServiceParams()
     ) -> Dict[str, Any]:
-        """从小红书获取笔记详情"""
+        """从小红书获取单个笔记详情
+
+        Args:
+            note_id: 笔记ID
+            xsec_token: 笔记的xsec_token
+            wait_time_sec: 页面加载等待时间（秒）
+            rpc_timeout_sec: RPC调用超时时间（秒）
+            task_params: 任务参数
+            service_params: 服务参数
+
+        Returns:
+            包含笔记详情的字典
+        """
         params = {
-            "brief_data": brief_data,
+            "note_id": note_id,
+            "xsec_token": xsec_token,
             "wait_time_sec": wait_time_sec,
             **task_params.__dict__,
             **service_params.__dict__,
         }
-        
+
         async with self._rpc_call("xiaohongshu_details", params, timeout_sec=rpc_timeout_sec) as result:
             return result
     
@@ -695,15 +709,16 @@ class EAIRPCClientSync:
             self._client.get_favorite_notes_brief_from_xhs(keywords, max_items, **kwargs)
         )
     
-    def get_notes_details_from_xhs(
-        self, 
-        keywords: List[str], 
-        max_items: int = 20,
+    def get_note_detail_from_xhs(
+        self,
+        note_id: str,
+        xsec_token: str,
+        wait_time_sec: int = 3,
         **kwargs
     ) -> Dict[str, Any]:
         self._ensure_loop()
         return self._loop.run_until_complete(
-            self._client.get_notes_details_from_xhs(keywords, max_items, **kwargs)
+            self._client.get_note_detail_from_xhs(note_id, xsec_token, wait_time_sec, **kwargs)
         )
     
     def search_notes_from_xhs(

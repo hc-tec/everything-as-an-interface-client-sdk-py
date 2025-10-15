@@ -271,6 +271,16 @@ class EAIRPCClient:
         async with self._rpc_call("bilibili_video_details", params, timeout_sec=rpc_timeout_sec) as result:
             return result
 
+    async def get_collection_list_from_xiaohongshu(self, user_id: Optional[str]=None, rpc_timeout_sec=60, task_params: TaskParams=TaskParams(), service_params: ServiceParams=ServiceParams()):
+        params = self._merge_params(task_params, service_params, {"user_id": user_id})
+        async with self._rpc_call("xiaohongshu_collection_list", params, timeout_sec=rpc_timeout_sec) as result:
+            return result
+
+    async def get_collection_favorite_items_from_xiaohongshu(self, collection_id: str, user_id: Optional[str]=None, rpc_timeout_sec=120, task_params: TaskParams=TaskParams(), service_params: ServiceParams=ServiceParams()):
+        params = self._merge_params(task_params, service_params, {"collection_id": collection_id, "user_id": user_id})
+        async with self._rpc_call("xiaohongshu_favorites_brief", params, timeout_sec=rpc_timeout_sec) as result:
+            return result
+
     async def chat_with_yuanbao(self, ask_question: str, conversation_id: str, rpc_timeout_sec=60, task_params: TaskParams=TaskParams(), service_params: ServiceParams=ServiceParams()):
         ask_question = ask_question.replace('\n', '').replace('\r', '')
         params = self._merge_params(task_params, service_params, {"ask_question": ask_question})

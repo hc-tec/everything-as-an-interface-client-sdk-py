@@ -7,14 +7,14 @@
 
 import asyncio
 
-from client_sdk.rpc_client import EAIRPCClient
+from client_sdk.rpc_client_async import EAIRPCClient
 from client_sdk.params import TaskParams, ServiceParams
 
 
 async def main():
     # 创建客户端
     client = EAIRPCClient(
-        base_url="http://127.0.0.1:9000", # 服务程序ip+port
+        base_url="http://127.0.0.1:8008", # 服务程序ip+port
         api_key="testkey",  # 与服务程序约定好的API密钥
         webhook_host="127.0.0.1", # webhook订阅服务，当服务程序成功获取到client所需要的订阅数据时，就会通过webhook调用向此请求发送订阅数据
         webhook_port=0, # 随机端口
@@ -33,10 +33,10 @@ async def main():
         # )
         # print(chat_result)
 
-        chat_result = await client.get_video_details_from_bilibili(
-            bvid="BV1EMhqzhE2T",
+        chat_result = await client.get_collection_favorite_items_from_xiaohongshu(
+            collection_id="65959382000000002803ba51",
             task_params=TaskParams(
-                cookie_ids=["23d87982-a801-4d12-ae93-50a85e336e98"],
+                cookie_ids=["5bea8c40-8065-4e4f-bd1f-8fa0e3147a51"],
                 close_page_when_task_finished=False,
             ),
             service_params=ServiceParams(

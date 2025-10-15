@@ -38,13 +38,15 @@ class ServiceParams:
         scroll_mode: Optional strategy indicator: "default" | "selector" | "pager".
         scroll_selector: Used when scroll_mode == "selector".
         pager_selector: Used when scroll_mode == "pager".
+        max_no_scroll_rounds: Number of consecutive scrolls with no height change before stopping.
+                            Only applicable for infinite scroll, not pager mode. Default is 2.
     """
 
     response_timeout_sec: float = 5.0
     delay_ms: int = 500
     queue_maxsize: Optional[int] = None
     scroll_pause_ms: int = 800
-    max_idle_rounds: int = 2
+    max_idle_rounds: int = 1
     max_items: Optional[int] = 10000
     max_seconds: int = 600
     auto_scroll: bool = True
@@ -53,6 +55,7 @@ class ServiceParams:
     max_pages: Optional[int] = None
     pager_selector: Optional[str] = None
     need_raw_data: bool = False
+    max_no_scroll_rounds: int = 1
 
 
 @dataclass
