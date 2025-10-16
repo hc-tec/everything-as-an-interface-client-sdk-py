@@ -33,14 +33,22 @@ async def main():
         # )
         # print(chat_result)
 
-        chat_result = await client.get_collection_favorite_items_from_xiaohongshu(
-            collection_id="65959382000000002803ba51",
+        # chat_result = await client.get_collection_favorite_items_from_xiaohongshu(
+        #     collection_id="65959382000000002803ba51",
+        #     task_params=TaskParams(
+        #         cookie_ids=["5bea8c40-8065-4e4f-bd1f-8fa0e3147a51"],
+        #         close_page_when_task_finished=False,
+        #     ),
+        #     service_params=ServiceParams(
+        #         need_raw_data=True
+        #     )
+        # )
+
+        chat_result = await client.chat_with_yuanbao(
+            ask_question="hello",
             task_params=TaskParams(
-                cookie_ids=["5bea8c40-8065-4e4f-bd1f-8fa0e3147a51"],
+                cookie_ids=[],
                 close_page_when_task_finished=False,
-            ),
-            service_params=ServiceParams(
-                need_raw_data=True
             )
         )
 
